@@ -1,0 +1,14 @@
+module Functions where
+
+import Daml.Script
+
+concatTwoStrings : Text -> Text -> Text
+concatTwoStrings x y = x <> y
+
+decimalToInteger : Decimal -> Int
+decimalToInteger x = truncate x
+
+functionsScript : Script ()
+functionsScript = script do
+    debug $ concatTwoStrings "Hello, " "World!"
+    debug $ decimalToInteger 3.1451

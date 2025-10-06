@@ -1,0 +1,33 @@
+module NumberType where
+
+import Daml.Script
+
+numberScript : Script ()
+numberScript = script do
+    let
+        integer : Int
+        integer = 10
+    debug $ integer
+    let
+        numeric : Numeric 0
+        numeric = 10.0
+        bigNumeric : BigNumeric
+        bigNumeric = 10.0
+    debug $ numeric
+    debug $ bigNumeric
+    
+    let
+        large_integer = 10_000_000
+    debug $ large_integer
+
+    let
+        decimal : Decimal
+        decimal = 10.0
+
+    debug $ decimal
+
+    let
+        pi : Decimal
+        pi = 3.14
+
+    debug $ "PI: " <> show pi

@@ -1,0 +1,24 @@
+module SafeDiv where
+
+import Daml.Script
+
+-- A function that returns 'Optional Int' instead of 'Int'
+safeDiv : Int -> Int -> Optional Int
+safeDiv x y =
+  if y == 0
+    then None          -- If dividing by zero, return nothing (None).
+    else Some (x / y)  -- Otherwise, return the result wrapped in 'Some'.
+
+runSafeDivExample : Script ()
+runSafeDivExample = script do
+  let successfulResult = safeDiv 10 2 -- Returns Some 5
+  let failedResult = safeDiv 10 0     -- Returns None
+
+  -- We can use a 'case' statement to safely handle the outcome
+  case successfulResult of
+    Some value -> debug $ "Success: " <> show value
+    None -> debug $ "Failure: Cannot divide by zero."
+
+  case failedResult of
+    Some value -> debug $ "Success: " <> show value
+    None -> debug $ "Failure: Cannot divide by zero."

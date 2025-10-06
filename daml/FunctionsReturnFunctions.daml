@@ -1,0 +1,18 @@
+module FunctionsReturnFunctions where
+
+import Daml.Script
+
+greeter : Text -> Text -> Text
+greeter greeting name = greeting <> ", " <> name <> "!"
+
+greeterUsingLambda : Text -> Text -> Text
+greeterUsingLambda greeting = (\name -> greeting <> ", " <> name <> "!")
+
+greetingScript : Script()
+
+greetingScript = script do
+    let
+        greetName x = greeter "Goodbye" x
+        greetNameLambda = greeterUsingLambda "Welcome"
+    debug $ greetName "Alice"
+    debug $ greetNameLambda "Joey"

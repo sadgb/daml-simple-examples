@@ -1,0 +1,31 @@
+module Triangle where
+
+import Daml.Script
+import DA.List (head, tail, last, init)
+import DA.Math (sqrt)
+
+triangleArea : [Decimal] -> Either Text Decimal
+triangleArea sides
+    | 0.0 `elem` sides  -- To use infix notation, surround backticks around the function name e.g. elem to `elem`
+    = Left "Error: Side of a triangle cannot be 0.0"
+    | ((length sides) < 3) = Left "Error: Triangle has 3 sides"
+    | ((sum (init sides)) <= last sides)
+    = Left
+        "Error: This can't be a triangle as sum of any two sides must be greater than the third"
+    | otherwise
+    = Right
+        (sqrt (s * (s - (head sides)) * (s - (head (tail sides)))
+            * (s - (last sides))))
+    where
+        s = (sum sides) / 2.0
+
+
+testTriangle : Script ()
+testTriangle = script do 
+
+    debug $ triangleArea [4.0, 2.0, 5.0]
+    debug $ triangleArea [1.0, 2.0, 3.0]
+    debug $ triangleArea [1.0, 2.0]
+    debug $ triangleArea [1.0, 2.0, 0.0]
+
+    return ()

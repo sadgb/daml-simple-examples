@@ -1,0 +1,17 @@
+module TextBool where
+
+import Daml.Script
+
+hello : Text -> Text
+hello x = "Hello, " <> x <> "!"
+
+textBoolScript : Script ()
+textBoolScript = script do
+    let
+        falseVar = False
+        trueVar = True
+    debug $ falseVar
+    debug $ trueVar
+
+    debug $ "Some Text"
+    debug $ hello "World"

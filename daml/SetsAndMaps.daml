@@ -1,0 +1,34 @@
+module SetsAndMaps where
+
+import Daml.Script
+import DA.Map as Map
+import DA.Set as Set
+
+setAndMapsExamples = script do
+  let numberList = [10, 20, 10, 30, 20] -- Note the duplicates
+  let numberSet = Set.fromList numberList
+
+  debug $ "Original list: " <> show numberList
+  debug $ "Set (duplicates removed): " <> show numberSet
+  debug $ "Size of the set: " <> show (Set.size numberSet)
+
+  let newSet = Set.insert 40 numberSet
+  debug $ "New set after inserting 40: " <> show newSet
+  debug $ "Is 20 a member of the set? " <> show (Set.member 20 newSet)
+
+  let userList = [("alice", 101), ("bob", 102), ("carol", 103)]
+  let userMap = Map.fromList userList
+
+  debug $ "Original map: " <> show userMap
+
+  -- Look up a key that exists
+  let bobId = Map.lookup "bob" userMap
+  case bobId of
+    Some id -> debug $ "Bob's ID is: " <> show id
+    None -> debug $ "Bob not found."
+
+  -- Look up a key that does not exist
+  let davidId = Map.lookup "david" userMap
+  case davidId of
+    Some id -> debug $ "David's ID is: " <> show id
+    None -> debug $ "David not found."

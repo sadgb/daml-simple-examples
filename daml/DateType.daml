@@ -1,0 +1,26 @@
+module DateType where
+
+import DA.Date
+import Daml.Script
+import DA.Time
+
+dateTypeTest : Script()
+dateTypeTest = script do
+    unixTime <- getTime
+    debug $ "Time: " <> show unixTime
+
+    let
+        dateOfBirth : Date 
+        dateOfBirth = date 2000 Jan 02
+
+        timeOfBirth : Time
+        timeOfBirth = time dateOfBirth 15 30 30
+
+        today: Date
+        today = date 2025 Jan 30
+        now = time today 10 30 0
+        age = subTime now timeOfBirth
+    
+    setTime unixTime
+    debug $ "Now: " <> show now
+    debug $ "Age: " <> show age
