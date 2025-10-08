@@ -1,0 +1,87 @@
+module TestQueryContracts where
+
+import Daml.Script
+
+import AnotherBankService
+
+testQueries : Script ()
+
+testQueries = script do
+  bank <- allocateParty "Bank"
+  alice <- allocateParty "Alice"
+  bob <- allocateParty "Bob"
+
+  aliceAccountCid <- submitMulti [bank, alice] [] do
+    createCmd Iou with
+      issuer = bank
+      owner = alice
+      amount = 100.0
+
+  bobAccountCid <- submitMulti [bank, bob] [] do
+    createCmd Iou with
+      issuer = bank
+      owner = bob
+      amount = 200.0
+
+  [(cid, contract)] <- query @Iou alice
+  debug "Iou accounts visible to alice"
+  debug $ cid
+  debug $ contract
+
+  debug "==========="
+  bobList <- query @Iou bob
+  debug "Bob's contract ID and payload"
+  debug $ bobList
+
+  debug "Visible bank accounts for `bank`"
+  bankList <- query @Iou bank
+  debug $ bankList
+
+  debug "=== Using queryContractById ==="
+  aliceAccountById <- queryContractId alice aliceAccountCid
+  debug $ aliceAccountById
+  debug "== Bob has no visibility to alice's =="
+  noneAccount <- queryContractId bob aliceAccountCid
+  debug $ noneAccount
+
+  debug "== Bank has both visibility to Alice and Bob =="
+  withBankParty <- queryContractId bank aliceAccountCid
+  debug $ withBankParty
+
+  withBankParty <- queryContractId bank bobAccountCid
+  debug $ withBankParty
+
+  debug "=== Using queryByContrackKey ==="
+  debug $ "== The key is comprised of bank and alice. =="
+  account <- queryContractKey @Iou alice (bank, alice)
+  debug $ account
+  debug $ "== Bob has no visibility to alice's"
+  account <- queryContractKey @Iou bob (bank, alice)
+  debug $ account
+  debug $ "== Of course bank has visibility for both bob and alice"
+  account <- queryContractKey @Iou bank (bank, alice)
+  debug $ account
+  account <- queryContractKey @Iou bank (bank, bob)
+  debug $ account
+
+  debug "=== Using queryFilter ==="
+  debug "== Let's add Zoey as a new lender =="
+  zoey <- allocateParty "Zoey"
+  zoeyAccoundCid <- submitMulti [bank, zoey] [] do
+    createCmd Iou with
+      issuer = bank
+      owner = zoey
+      amount = 10.0
+
+  largeLoans <- queryFilter
+    @Iou
+    bank
+    (\account -> account.amount >= 20.0)
+  debug $ largeLoans
+
+  smallLoans <- queryFilter
+    @Iou
+    bank
+    (\account -> account.amount < 20.0)
+  
+  debug $ smallLoans

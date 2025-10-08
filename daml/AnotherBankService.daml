@@ -1,0 +1,43 @@
+module AnotherBankService where
+
+import Daml.Script
+
+template Iou
+  with
+    issuer : Party
+    owner : Party
+    amount : Decimal
+  where
+    signatory issuer, owner
+
+    -- The key is a combination of the issuer and owner.
+    -- This ensures that for any given issuer, an owner can only have one Iou.
+    key (issuer, owner) : (Party, Party)
+    maintainer key._1
+
+    choice Loan : ContractId Iou
+      with 
+        additional : Decimal
+      controller issuer
+      do
+        create this with
+          amount = amount + additional
+
+template Bank
+  with
+    bank : Party
+  where
+    signatory bank
+
+    -- This is a non-consuming choice because looking up data
+    -- should not change or archive the Bank service contract.
+    nonconsuming choice LookupIou : Iou
+      with
+        customer : Party
+      controller bank
+      do
+        -- fetchByKey attempts to find a contract.
+        account <- fetchByKey @Iou (bank, customer)
+        -- The return type of `fetchByKey` is a tuple-> a key, and the payload.
+        -- We are only interested with the payload->at index 2
+        return account._2

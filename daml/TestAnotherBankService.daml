@@ -1,0 +1,41 @@
+module TestAnotherBankService where
+
+import Daml.Script
+import AnotherBankService
+
+
+testBankServiceScript : Script()
+testBankServiceScript = script do
+  alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")
+  aliceId <- validateUserId "alice"
+  bank <- allocateParty "Bank"
+  createUser (User aliceId (Some alice)) [CanActAs alice]
+
+  aliceCid1 <- submitMulti [alice, bank] [] do
+    createCmd Iou with
+      issuer = bank
+      owner = alice
+      amount = 100.0
+
+
+  bankServiceCid <- submit bank do
+    createCmd Bank with
+      bank  -- shorthand for `bank=bank` since they have the same variable name
+
+  
+  fetchByCidAliceAccount <- submitMulti [alice, bank] [] do
+    exerciseCmd bankServiceCid LookupIou
+      with customer = alice
+
+  aliceCid2 <- submit bank do
+    exerciseCmd aliceCid1 Loan
+      with additional = 20.0
+
+
+  aliceCid3 <- submit bank do
+    exerciseCmd aliceCid2 Loan
+      with additional = 50.0
+  
+
+  debug $ fetchByCidAliceAccount.amount
+  return ()

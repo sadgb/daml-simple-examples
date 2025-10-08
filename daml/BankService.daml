@@ -1,0 +1,50 @@
+module BankService where
+
+import Daml.Script
+
+template Account
+  with
+    issuer : Party
+    owner   : Party
+    name    : Text
+    balance : Numeric 2
+  where
+      ensure name /= ""
+      signatory issuer, owner
+
+      choice Deposit : ContractId Account
+        with amount : Numeric 2
+          controller owner
+          do
+            create this with -- keyword this refers to the template `Account`
+              balance = balance + amount
+
+
+testBankService : Script()
+
+testBankService = script do
+  alice <- allocatePartyWithHint "Alice" (PartyIdHint "Alice")
+  aliceId <- validateUserId "alice"
+  bank <- allocateParty "Bank"
+  createUser (User aliceId (Some alice)) [CanActAs alice]
+
+
+  aliceCid1 <- submitMulti [alice, bank] [] do
+    createCmd Account with
+      issuer = bank
+      owner = alice
+      name = "Alice"
+      balance = 0.0
+
+
+  aliceCid2 <- submit alice do
+    exerciseCmd aliceCid1 Deposit 
+      with 
+        amount = 10.0
+
+  aliceCid3 <- submit alice do
+    exerciseCmd aliceCid2 Deposit
+      with
+        amount = 200.0
+
+  return ()
